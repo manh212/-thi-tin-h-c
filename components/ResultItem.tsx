@@ -21,7 +21,7 @@ const ResultItem: React.FC<ResultItemProps> = ({ question, userAnswer, index, on
     if (answer === undefined || answer === null) return <em>Chưa trả lời</em>;
     if (Array.isArray(answer)) return <ol className="list-decimal list-inside ml-2">{answer.map((item, i) => <li key={i}>{item}</li>)}</ol>;
     if (question.type === 'tf') return String(answer).toLowerCase() === 'true' ? 'Đúng' : 'Sai';
-    return answer;
+    return String(answer);
   }
 
   const displayUserAnswer = formatAnswerForDisplay(userAnswer);
@@ -43,24 +43,41 @@ const ResultItem: React.FC<ResultItemProps> = ({ question, userAnswer, index, on
 
       {isOpen && (
         <div id={`result-details-${index}`} className="px-4 pb-4 pt-2" role="region">
-           <div className={`mt-2 pt-3 border-t ${isCorrect ? 'border-green-200' : 'border-red-200'} space-y-3`}>
-              <div className="space-y-2">
+           <div className={`mt-2 pt-3 border-t ${isCorrect ? 'border-green-200' : 'border-red-200'} space-y-4`}>
+              
+              {/* --- User's Answer --- */}
+              <div className="space-y-1">
                 <p><strong>Câu trả lời của bạn:</strong></p> 
-                <div className={`p-2 rounded-md ${isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>{displayUserAnswer}</div>
+                <div className={`p-3 rounded-md text-sm ${isCorrect ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}`}>{displayUserAnswer}</div>
               </div>
+
+              {/* --- Correct Answer (if incorrect) --- */}
               {!isCorrect && (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <p><strong>Đáp án đúng:</strong></p>
-                  <div className="p-2 rounded-md bg-green-200 text-green-800">{displayCorrectAnswer}</div>
+                  <div className="p-3 rounded-md text-sm bg-green-100 text-green-900">{displayCorrectAnswer}</div>
                 </div>
               )}
-              {question.explanation && (
-                  <div className="text-slate-700 pt-3 mt-2 border-t border-slate-300">
-                      <div className="flex justify-between items-center">
-                         <strong className="font-semibold">Giải thích:</strong>
-                         <button onClick={() => onViewInSyllabus(question.syllabusId)} className="text-sm text-blue-600 hover:underline">Xem chi tiết từ đề cương</button>
-                      </div>
-                      <p className="mt-1">{question.explanation}</p>
+
+              {/* --- Explanation and Syllabus Link --- */}
+              {(question.explanation || question.syllabusId) && (
+                  <div className="pt-3 mt-2 border-t border-slate-300">
+                    <div className="flex justify-between items-start gap-4">
+                      {question.explanation && (
+                         <div className="flex-grow text-slate-700">
+                           <strong className="font-semibold">Giải thích:</strong>
+                           <p className="mt-1 text-sm">{question.explanation}</p>
+                         </div>
+                      )}
+                      {question.syllabusId && (
+                        <button 
+                            onClick={() => onViewInSyllabus(question.syllabusId)} 
+                            className="flex-shrink-0 self-center px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap"
+                        >
+                            Xem chi tiết từ đề cương
+                        </button>
+                      )}
+                    </div>
                   </div>
               )}
            </div>

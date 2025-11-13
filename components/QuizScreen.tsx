@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { Question } from '../types';
 import Button from './Button';
@@ -6,6 +7,7 @@ interface QuizScreenProps {
   questions: Question[];
   onFinish: (userAnswers: Record<number, string | string[]>, time: number) => void;
   mode: 'practice' | 'exam';
+  onViewInSyllabus: (syllabusId: string) => void;
 }
 
 const CorrectIcon = () => (
@@ -20,7 +22,7 @@ const IncorrectIcon = () => (
     </svg>
 );
 
-const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, mode }) => {
+const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, mode, onViewInSyllabus }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [sequenceAnswer, setSequenceAnswer] = useState<string[]>([]);
@@ -198,10 +200,18 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, mode }) =>
       </fieldset>
 
       {showNextButton && (
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
           <Button onClick={handleNextQuestion}>
             {currentQuestion.type === 'sequencing' && isPracticeMode && !showFeedback ? 'Kiểm tra đáp án' : currentIndex < questions.length - 1 ? 'Câu hỏi tiếp theo' : 'Hoàn thành'}
           </Button>
+          {isPracticeMode && showFeedback && currentQuestion.syllabusId && (
+            <Button 
+                onClick={() => onViewInSyllabus(currentQuestion.syllabusId)} 
+                variant="secondary"
+            >
+                Xem trong đề cương
+            </Button>
+          )}
         </div>
       )}
     </div>

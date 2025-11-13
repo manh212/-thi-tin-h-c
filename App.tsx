@@ -167,7 +167,7 @@ const App: React.FC = () => {
       case 'setup':
         return <SetupScreen onStartQuiz={handleStartQuiz} onViewHistory={handleViewHistory} onStartIncorrectQuiz={handleStartIncorrectQuiz} onViewDeCuong={handleViewDeCuong} onViewPhimTat={handleViewPhimTat} />;
       case 'quiz':
-        return <QuizScreen questions={quizQuestions} onFinish={handleFinishQuiz} mode={quizMode} />;
+        return <QuizScreen questions={quizQuestions} onFinish={handleFinishQuiz} mode={quizMode} onViewInSyllabus={handleViewInSyllabus} />;
       case 'results':
         return <ResultsScreen questions={quizQuestions} userAnswers={userAnswers} totalTime={totalTime} onRestart={handleGoToSetup} onViewHistory={handleViewHistory} onViewInSyllabus={handleViewInSyllabus} />;
       case 'history':
