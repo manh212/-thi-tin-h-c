@@ -5,8 +5,9 @@ import type { Question, QuizSettings } from './types';
 import SetupScreen from './components/SetupScreen';
 import QuizScreen from './components/QuizScreen';
 import ResultsScreen from './components/ResultsScreen';
+import HistoryScreen from './components/HistoryScreen';
 
-type AppState = 'setup' | 'quiz' | 'results';
+type AppState = 'setup' | 'quiz' | 'results' | 'history';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('setup');
@@ -45,6 +46,10 @@ const App: React.FC = () => {
     setAppState('setup');
   }, []);
 
+  const handleViewHistory = useCallback(() => {
+    setAppState('history');
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex items-center justify-center p-4">
@@ -54,9 +59,10 @@ const App: React.FC = () => {
           <p className="text-slate-600 mt-2">Luyện tập từng câu hỏi với phản hồi và giải thích chi tiết.</p>
         </header>
 
-        {appState === 'setup' && <SetupScreen onStartQuiz={handleStartQuiz} />}
+        {appState === 'setup' && <SetupScreen onStartQuiz={handleStartQuiz} onViewHistory={handleViewHistory} />}
         {appState === 'quiz' && <QuizScreen questions={quizQuestions} onFinish={handleFinishQuiz} />}
-        {appState === 'results' && <ResultsScreen questions={quizQuestions} userAnswers={userAnswers} totalTime={totalTime} onRestart={handleRestart} />}
+        {appState === 'results' && <ResultsScreen questions={quizQuestions} userAnswers={userAnswers} totalTime={totalTime} onRestart={handleRestart} onViewHistory={handleViewHistory} />}
+        {appState === 'history' && <HistoryScreen onBack={handleRestart} />}
       </main>
     </div>
   );

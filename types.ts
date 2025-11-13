@@ -12,3 +12,20 @@ export interface QuizSettings {
   categories: string[];
   numQuestions: number;
 }
+
+export interface QuizResult {
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  totalTime: number;
+  timestamp: number;
+}
+
+export interface AggregatedHistory {
+    batches: {
+        timestamp: number;
+        averagePercentage: number;
+        totalQuizzes: number;
+        highScore: number;
+    }[];
+}

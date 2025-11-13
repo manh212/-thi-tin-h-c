@@ -6,9 +6,10 @@ import Button from './Button';
 
 interface SetupScreenProps {
   onStartQuiz: (settings: QuizSettings) => void;
+  onViewHistory: () => void;
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStartQuiz }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStartQuiz, onViewHistory }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [numQuestions, setNumQuestions] = useState(20);
 
@@ -77,9 +78,12 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartQuiz }) => {
         </div>
       </div>
 
-      <div className="text-center pt-4">
+      <div className="text-center pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
         <Button onClick={handleStart} disabled={maxQuestions === 0}>
           Bắt Đầu Luyện Tập
+        </Button>
+        <Button onClick={onViewHistory} variant="secondary">
+          Xem Lịch Sử Tổng Hợp
         </Button>
       </div>
     </div>

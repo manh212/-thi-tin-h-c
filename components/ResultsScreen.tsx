@@ -1,18 +1,22 @@
+
 import React, { useMemo, useEffect, useRef, useState } from 'react';
-import type { Question } from '../types';
+import type { Question, QuizResult } from '../types';
 import Button from './Button';
 import ResultItem from './ResultItem';
+import { saveResult, getHistory, calculateHighScore } from '../historyManager';
 
 interface ResultsScreenProps {
   questions: Question[];
   userAnswers: Record<number, string>;
   totalTime: number;
   onRestart: () => void;
+  onViewHistory: () => void;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, totalTime, onRestart }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, totalTime, onRestart, onViewHistory }) => {
   const mainHeadingRef = useRef<HTMLHeadingElement>(null);
   const [showOnlyIncorrect, setShowOnlyIncorrect] = useState(false);
+  const [highScoreInfo, setHighScoreInfo] = useState({ highScore: 0, count: 0, historyLength: 0 });
 
   useEffect(() => {
     mainHeadingRef.current?.focus();
@@ -33,6 +37,24 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
     const currentPercentage = questions.length > 0 ? (currentScore / questions.length) * 100 : 0;
     return { score: currentScore, percentage: currentPercentage, incorrectAnswerIndices: incorrectIndices };
   }, [questions, userAnswers]);
+
+  useEffect(() => {
+    if (questions.length > 0) {
+      const newResult: QuizResult = {
+        score,
+        totalQuestions: questions.length,
+        percentage: parseFloat(percentage.toFixed(1)),
+        totalTime,
+        timestamp: Date.now(),
+      };
+      
+      saveResult(newResult);
+      
+      const updatedHistory = getHistory();
+      const { highScore, count } = calculateHighScore(updatedHistory);
+      setHighScoreInfo({ highScore, count, historyLength: updatedHistory.length });
+    }
+  }, [score, percentage, totalTime, questions.length]);
   
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -59,6 +81,19 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
         <p className="text-lg"><strong>Tỷ lệ đúng:</strong> {percentage.toFixed(1)}%</p>
         <p className="text-lg"><strong>Tổng thời gian:</strong> {formatTime(totalTime)}</p>
         <p className="text-lg mt-2 font-medium text-blue-600"><strong>Đánh giá:</strong> {getAssessment()}</p>
+      </section>
+
+      <section aria-labelledby="highscore-heading" className="text-center p-6 border-2 rounded-lg bg-yellow-50 border-yellow-200">
+        <h3 id="highscore-heading" className="text-xl font-semibold text-gray-700 mb-2">Thành Tích Chuỗi Này</h3>
+        <p className="text-lg"><strong>Điểm cao nhất:</strong> {highScoreInfo.highScore.toFixed(1)}%</p>
+        {highScoreInfo.highScore > 0 && (
+          <p className="text-lg"><strong>Số lần đạt được:</strong> {highScoreInfo.count}</p>
+        )}
+        <p className="text-sm text-slate-600 mt-2">
+            Bài làm hiện tại: {highScoreInfo.historyLength} / 10.
+            <br />
+            Lịch sử sẽ được tổng kết và làm mới sau mỗi 10 lần làm bài.
+        </p>
       </section>
 
       <section aria-labelledby="review-heading">
@@ -88,9 +123,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
         </div>
       </section>
 
-      <div className="text-center pt-4">
+      <div className="text-center pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
         <Button onClick={onRestart} variant="primary">
           Luyện Tập Lại
+        </Button>
+        <Button onClick={onViewHistory} variant="secondary">
+          Xem Lịch Sử Tổng Hợp
         </Button>
       </div>
     </div>
