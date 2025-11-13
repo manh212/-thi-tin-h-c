@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { Question } from '../types';
 
@@ -57,7 +58,7 @@ const ResultItem: React.FC<ResultItemProps> = ({ question, userAnswer, index, on
                   <div className="text-slate-700 pt-3 mt-2 border-t border-slate-300">
                       <div className="flex justify-between items-center">
                          <strong className="font-semibold">Giải thích:</strong>
-                         <button onClick={() => onViewInSyllabus(question.syllabusId)} className="text-sm text-blue-600 hover:underline">Xem trong đề cương</button>
+                         <button onClick={() => onViewInSyllabus(question.syllabusId)} className="text-sm text-blue-600 hover:underline">Xem chi tiết từ đề cương</button>
                       </div>
                       <p className="mt-1">{question.explanation}</p>
                   </div>
