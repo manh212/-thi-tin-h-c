@@ -1,0 +1,5 @@
+{
+  "name": "Trình Tạo Đề Thi Tin Học Toàn Diện",
+  "description": "Một ứng dụng web cho phép người dùng tạo và làm các bài kiểm tra trắc nghiệm và tình huống tùy chỉnh từ một ngân hàng câu hỏi đã được cập nhật, được thiết kế cho các cuộc thi tin học.",
+  "requestFramePermissions": []
+}
