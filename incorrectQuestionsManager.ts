@@ -1,3 +1,8 @@
+import { getRawHistory } from './historyManager';
+import { analyzeWeaknesses } from './analysisManager';
+import { questionBank } from './constants';
+import type { Question } from './types';
+
 const INCORRECT_QUESTIONS_KEY = 'incorrectQuestionIds';
 
 export const getIncorrectQuestionIds = (): number[] => {
@@ -34,3 +39,31 @@ export const removeCorrectlyAnsweredIds = (idsToRemove: number[]): void => {
 export const getIncorrectQuestionCount = (): number => {
     return getIncorrectQuestionIds().length;
 }
+
+export const generateSmartReviewQuiz = async (numQuestions = 20): Promise<Question[]> => {
+    const incorrectIds = getIncorrectQuestionIds();
+    const history = getRawHistory();
+    const weaknesses = analyzeWeaknesses(history);
+
+    const incorrectQuestions = questionBank.filter(q => incorrectIds.includes(q.id));
+    
+    let weakSpotQuestions: Question[] = [];
+    if (weaknesses.length > 0) {
+        // Get questions from the top 3 weakest subcategories, excluding ones already in the incorrect list
+        const weakestSubCategories = weaknesses.slice(0, 3).map(w => w.subCategory);
+        weakSpotQuestions = questionBank.filter(q => 
+            weakestSubCategories.includes(q.subCategory) && !incorrectIds.includes(q.id)
+        );
+    }
+    
+    // Prioritize incorrect questions, then add questions from weak spots
+    const combinedPool = [...incorrectQuestions, ...weakSpotQuestions];
+    
+    // Remove duplicates
+    const uniquePool = Array.from(new Set(combinedPool.map(q => q.id)))
+                            .map(id => combinedPool.find(q => q.id === id)!);
+
+    // Shuffle and slice
+    const shuffled = uniquePool.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, numQuestions);
+};

@@ -1,17 +1,22 @@
 export interface Question {
   id: number;
   category: string;
-  type: 'mcq' | 'tf';
+  subCategory: string;
+  skillType: 'theory' | 'practice';
+  syllabusId: string;
+  type: 'mcq' | 'tf' | 'sequencing';
   question: string;
   options?: string[];
-  answer: string | boolean;
+  answer: string | boolean | string[];
   explanation?: string;
 }
 
 export interface QuizSettings {
   categories: string[];
+  subCategories: string[];
   numQuestions: number;
   mode: 'practice' | 'exam';
+  skillType: 'all' | 'theory' | 'practice';
 }
 
 export interface QuizResult {
@@ -20,6 +25,8 @@ export interface QuizResult {
   percentage: number;
   totalTime: number;
   timestamp: number;
+  questionIds: number[];
+  userAnswers: Record<number, string | string[]>;
 }
 
 export interface AggregatedHistory {
@@ -29,4 +36,18 @@ export interface AggregatedHistory {
         totalQuizzes: number;
         highScore: number;
     }[];
+}
+
+export interface SyllabusContent {
+    id: string;
+    level: number;
+    title: string;
+    content?: string;
+    children?: SyllabusContent[];
+}
+
+export interface Hotkey {
+    app: string;
+    keys: string;
+    description: string;
 }

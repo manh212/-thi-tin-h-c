@@ -7,13 +7,14 @@ import { addIncorrectQuestionIds, removeCorrectlyAnsweredIds } from '../incorrec
 
 interface ResultsScreenProps {
   questions: Question[];
-  userAnswers: Record<number, string>;
+  userAnswers: Record<number, string | string[]>;
   totalTime: number;
   onRestart: () => void;
   onViewHistory: () => void;
+  onViewInSyllabus: (syllabusId: string) => void;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, totalTime, onRestart, onViewHistory }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, totalTime, onRestart, onViewHistory, onViewInSyllabus }) => {
   const mainHeadingRef = useRef<HTMLHeadingElement>(null);
   const [showOnlyIncorrect, setShowOnlyIncorrect] = useState(false);
   const [highScoreInfo, setHighScoreInfo] = useState({ highScore: 0, count: 0, historyLength: 0 });
@@ -27,9 +28,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
     const incorrectIndices: number[] = [];
     const correctIndices: number[] = [];
     questions.forEach((q, index) => {
-      const correctAnswer = String(q.answer).toLowerCase();
-      const userAnswer = (userAnswers[index] || '').toLowerCase();
-      if (userAnswer === correctAnswer) {
+      const correctAnswer = q.answer;
+      const userAnswer = userAnswers[index];
+      let isMatch = false;
+      if(Array.isArray(correctAnswer)) {
+        isMatch = JSON.stringify(correctAnswer) === JSON.stringify(userAnswer);
+      } else {
+        isMatch = (userAnswer as string)?.toLowerCase() === String(correctAnswer).toLowerCase();
+      }
+      
+      if (isMatch) {
         currentScore++;
         correctIndices.push(index);
       } else {
@@ -61,13 +69,14 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
 
   useEffect(() => {
     if (questions.length > 0) {
-      // Save overall result for history
       const newResult: QuizResult = {
         score,
         totalQuestions: questions.length,
         percentage: parseFloat(percentage.toFixed(1)),
         totalTime,
         timestamp: Date.now(),
+        questionIds: questions.map(q => q.id),
+        userAnswers: userAnswers,
       };
       saveResult(newResult);
       
@@ -75,15 +84,13 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
       const { highScore, count } = calculateHighScore(updatedHistory);
       setHighScoreInfo({ highScore, count, historyLength: updatedHistory.length });
       
-      // Update incorrect questions list
       const incorrectQuestionIds = incorrectAnswerIndices.map(i => questions[i].id);
       addIncorrectQuestionIds(incorrectQuestionIds);
       
-      // Remove questions that were answered correctly from the incorrect list
       const correctQuestionIds = correctAnswerIndices.map(i => questions[i].id);
       removeCorrectlyAnsweredIds(correctQuestionIds);
     }
-  }, [score, percentage, totalTime, questions, incorrectAnswerIndices, correctAnswerIndices]);
+  }, [score, percentage, totalTime, questions, userAnswers, incorrectAnswerIndices, correctAnswerIndices]);
   
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -115,7 +122,6 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
        <section aria-labelledby="category-stats-heading" className="p-6 border-2 rounded-lg bg-blue-50 border-blue-200">
         <h3 id="category-stats-heading" className="text-xl font-semibold text-gray-700 mb-4">Thống Kê Theo Chủ Đề</h3>
         <ul className="space-y-2">
-            {/* Fix: Use Object.keys to iterate and ensure stats object is correctly typed. */}
             {Object.keys(categoryStats).map((category) => {
                 const stats = categoryStats[category];
                 return (
@@ -124,14 +130,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <span>{stats.correct} / {stats.total} đúng</span>
                           <div className="w-full bg-slate-200 rounded-full h-2.5">
-                              <div 
-                                  className="bg-blue-600 h-2.5 rounded-full" 
-                                  style={{ width: `${(stats.correct / stats.total) * 100}%` }}
-                                  aria-valuenow={(stats.correct / stats.total) * 100}
-                                  aria-valuemin={0}
-                                  aria-valuemax={100}
-                                  aria-label={`Tỷ lệ đúng cho ${category}: ${(stats.correct / stats.total) * 100}%`}
-                              ></div>
+                              <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${(stats.correct / stats.total) * 100}%` }}></div>
                           </div>
                         </div>
                     </li>
@@ -143,50 +142,29 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
       <section aria-labelledby="highscore-heading" className="text-center p-6 border-2 rounded-lg bg-yellow-50 border-yellow-200">
         <h3 id="highscore-heading" className="text-xl font-semibold text-gray-700 mb-2">Thành Tích Chuỗi Này</h3>
         <p className="text-lg"><strong>Điểm cao nhất:</strong> {highScoreInfo.highScore.toFixed(1)}%</p>
-        {highScoreInfo.highScore > 0 && (
-          <p className="text-lg"><strong>Số lần đạt được:</strong> {highScoreInfo.count}</p>
-        )}
-        <p className="text-sm text-slate-600 mt-2">
-            Bài làm hiện tại: {highScoreInfo.historyLength} / 10.
-            <br />
-            Lịch sử sẽ được tổng kết và làm mới sau mỗi 10 lần làm bài.
-        </p>
+        {highScoreInfo.highScore > 0 && <p className="text-lg"><strong>Số lần đạt được:</strong> {highScoreInfo.count}</p>}
+        <p className="text-sm text-slate-600 mt-2">Bài làm hiện tại: {highScoreInfo.historyLength} / 10.<br />Lịch sử sẽ được tổng kết và làm mới sau mỗi 10 lần làm bài.</p>
       </section>
 
       <section aria-labelledby="review-heading">
         <div className="flex justify-between items-center border-b-2 border-blue-500 pb-2 mb-4">
-            <h3 id="review-heading" className="text-2xl font-semibold text-gray-700">
-              Xem Lại Câu Trả Lời
-            </h3>
+            <h3 id="review-heading" className="text-2xl font-semibold text-gray-700">Xem Lại Câu Trả Lời</h3>
             {incorrectAnswerIndices.length > 0 && (
-              <button
-                onClick={() => setShowOnlyIncorrect(prev => !prev)}
-                aria-pressed={showOnlyIncorrect}
-                className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
+              <button onClick={() => setShowOnlyIncorrect(prev => !prev)} aria-pressed={showOnlyIncorrect} className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                 {showOnlyIncorrect ? 'Hiển thị tất cả' : `Chỉ xem ${incorrectAnswerIndices.length} câu sai`}
               </button>
             )}
         </div>
         <div className="space-y-4">
           {questionsToDisplayIndices.map(index => (
-            <ResultItem
-              key={questions[index].id}
-              question={questions[index]}
-              userAnswer={userAnswers[index]}
-              index={index}
-            />
+            <ResultItem key={questions[index].id} question={questions[index]} userAnswer={userAnswers[index]} index={index} onViewInSyllabus={onViewInSyllabus}/>
           ))}
         </div>
       </section>
 
       <div className="text-center pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
-        <Button onClick={onRestart} variant="primary">
-          Luyện Tập Lại
-        </Button>
-        <Button onClick={onViewHistory} variant="secondary">
-          Xem Lịch Sử Tổng Hợp
-        </Button>
+        <Button onClick={onRestart} variant="primary">Luyện Tập Lại</Button>
+        <Button onClick={onViewHistory} variant="secondary">Xem Lịch Sử Tổng Hợp</Button>
       </div>
     </div>
   );

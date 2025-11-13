@@ -2,6 +2,7 @@ import type { QuizResult, AggregatedHistory } from './types';
 
 const HISTORY_KEY = 'quizHistory';
 const AGGREGATED_HISTORY_KEY = 'aggregatedQuizHistory';
+const RAW_HISTORY_KEY = 'rawQuizHistory'; // For detailed analysis
 const HISTORY_LIMIT = 10;
 
 export const getHistory = (): QuizResult[] => {
@@ -13,6 +14,17 @@ export const getHistory = (): QuizResult[] => {
     return [];
   }
 };
+
+export const getRawHistory = (): QuizResult[] => {
+  try {
+    const history = localStorage.getItem(RAW_HISTORY_KEY);
+    return history ? JSON.parse(history) : [];
+  } catch (error) {
+    console.error('Error reading raw history from localStorage:', error);
+    return [];
+  }
+};
+
 
 export const getAggregatedHistory = (): AggregatedHistory => {
     try {
@@ -26,8 +38,15 @@ export const getAggregatedHistory = (): AggregatedHistory => {
 
 export const saveResult = (result: QuizResult): void => {
   try {
+    // Save to rolling 10-quiz history for aggregation
     let history = getHistory();
     history.push(result);
+
+    // Save to raw history for detailed analysis
+    let rawHistory = getRawHistory();
+    rawHistory.push(result);
+    localStorage.setItem(RAW_HISTORY_KEY, JSON.stringify(rawHistory));
+
 
     if (history.length >= HISTORY_LIMIT) {
         const currentAggregatedHistory = getAggregatedHistory();
