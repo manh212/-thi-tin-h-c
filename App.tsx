@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { questionBank } from './constants';
 import type { Question, QuizSettings } from './types';
 import SetupScreen from './components/SetupScreen';
 import QuizScreen from './components/QuizScreen';
 import ResultsScreen from './components/ResultsScreen';
 import HistoryScreen from './components/HistoryScreen';
+import WelcomeModal from './components/WelcomeModal';
 import { getIncorrectQuestionIds } from './incorrectQuestionsManager';
 
 type AppState = 'setup' | 'quiz' | 'results' | 'history';
@@ -15,6 +16,19 @@ const App: React.FC = () => {
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [totalTime, setTotalTime] = useState(0);
   const [quizMode, setQuizMode] = useState<'practice' | 'exam'>('practice');
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('hasVisitedBefore');
+    if (!hasVisited) {
+      setShowWelcomeModal(true);
+    }
+  }, []);
+
+  const handleCloseWelcomeModal = () => {
+    localStorage.setItem('hasVisitedBefore', 'true');
+    setShowWelcomeModal(false);
+  };
 
   const handleStartQuiz = useCallback((settings: QuizSettings) => {
     let filteredQuestions = questionBank;
@@ -69,6 +83,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex items-center justify-center p-4">
+      {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
       <main className="container mx-auto max-w-4xl w-full bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
         <header className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-blue-600">Trình Luyện Thi Tin Học Toàn Diện</h1>
