@@ -5,6 +5,7 @@ import Button from './Button';
 interface QuizScreenProps {
   questions: Question[];
   onFinish: (userAnswers: Record<number, string>, time: number) => void;
+  mode: 'practice' | 'exam';
 }
 
 const CorrectIcon = () => (
@@ -19,7 +20,7 @@ const IncorrectIcon = () => (
     </svg>
 );
 
-const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
+const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, mode }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
@@ -27,6 +28,8 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
   const [feedbackForSR, setFeedbackForSR] = useState('');
   const [time, setTime] = useState(0);
   const headingRef = useRef<HTMLLegendElement>(null);
+  
+  const isPracticeMode = mode === 'practice';
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -52,21 +55,23 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
     
     setSelectedAnswer(answer);
     setUserAnswers(prev => ({ ...prev, [currentIndex]: answer }));
-    setShowFeedback(true);
-
-    const currentQuestion = questions[currentIndex];
-    const isCorrect = answer.toLowerCase() === String(currentQuestion.answer).toLowerCase();
     
-    let feedback = isCorrect ? 'Chính xác!' : 'Không chính xác.';
-    const correctAnswerText = String(currentQuestion.answer) === 'true' ? 'Đúng' : String(currentQuestion.answer) === 'false' ? 'Sai' : currentQuestion.answer;
+    if (isPracticeMode) {
+      setShowFeedback(true);
+      const currentQuestion = questions[currentIndex];
+      const isCorrect = answer.toLowerCase() === String(currentQuestion.answer).toLowerCase();
+      
+      let feedback = isCorrect ? 'Chính xác!' : 'Không chính xác.';
+      const correctAnswerText = String(currentQuestion.answer) === 'true' ? 'Đúng' : String(currentQuestion.answer) === 'false' ? 'Sai' : currentQuestion.answer;
 
-    if (!isCorrect) {
-      feedback += ` Đáp án đúng là: ${correctAnswerText}.`;
+      if (!isCorrect) {
+        feedback += ` Đáp án đúng là: ${correctAnswerText}.`;
+      }
+      if (currentQuestion.explanation) {
+        feedback += ` Giải thích: ${currentQuestion.explanation}`;
+      }
+      setFeedbackForSR(feedback);
     }
-    if (currentQuestion.explanation) {
-      feedback += ` Giải thích: ${currentQuestion.explanation}`;
-    }
-    setFeedbackForSR(feedback);
   };
 
   const handleNextQuestion = () => {
@@ -112,7 +117,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
       const isTheCorrectAnswer = opt.value.toLowerCase() === String(currentQuestion.answer).toLowerCase();
       
       let buttonClass = 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700';
-      if (showFeedback) {
+      if (showFeedback && isPracticeMode) {
         if (isTheCorrectAnswer) {
           buttonClass = 'bg-green-100 border-green-500 text-green-800 ring-2 ring-green-500';
         } else if (isSelected && !isTheCorrectAnswer) {
@@ -120,6 +125,8 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
         } else {
             buttonClass = 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed';
         }
+      } else if (!isPracticeMode && isSelected) {
+          buttonClass = 'bg-blue-100 border-blue-400 text-blue-800 ring-2 ring-blue-500';
       }
 
       return (
@@ -135,11 +142,13 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
     });
   };
 
+  const showNextButton = (isPracticeMode && showFeedback) || (!isPracticeMode && selectedAnswer !== null);
+
   return (
     <div>
       <div className="sr-only" aria-live="assertive" aria-atomic="true">{feedbackForSR}</div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Luyện tập</h2>
+        <h2 className="text-xl font-semibold text-gray-700">{isPracticeMode ? 'Luyện tập' : 'Thi thử'}</h2>
         <div 
           className="text-lg font-mono bg-slate-200 text-slate-800 px-3 py-1 rounded-md" 
           aria-label={`Thời gian đã trôi qua: ${formatAriaTime(time)}`}
@@ -149,7 +158,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
         </div>
       </div>
       
-      {showFeedback && (
+      {(isPracticeMode && showFeedback) && (
         <div className={`mb-6 p-4 border rounded-lg ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`} role="alert">
           <div className="flex items-start space-x-3">
             {isCorrect ? <CorrectIcon /> : <IncorrectIcon />}
@@ -181,7 +190,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
         </div>
       </fieldset>
 
-      {showFeedback && (
+      {showNextButton && (
         <div className="text-center mt-8">
           <Button onClick={handleNextQuestion}>
             {currentIndex < questions.length - 1 ? 'Câu hỏi tiếp theo' : 'Hoàn thành'}

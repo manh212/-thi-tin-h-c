@@ -1,5 +1,5 @@
-
 export interface Question {
+  id: number;
   category: string;
   type: 'mcq' | 'tf';
   question: string;
@@ -11,6 +11,7 @@ export interface Question {
 export interface QuizSettings {
   categories: string[];
   numQuestions: number;
+  mode: 'practice' | 'exam';
 }
 
 export interface QuizResult {

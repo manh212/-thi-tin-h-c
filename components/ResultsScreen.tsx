@@ -1,9 +1,9 @@
-
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import type { Question, QuizResult } from '../types';
 import Button from './Button';
 import ResultItem from './ResultItem';
 import { saveResult, getHistory, calculateHighScore } from '../historyManager';
+import { addIncorrectQuestionIds, removeCorrectlyAnsweredIds } from '../incorrectQuestionsManager';
 
 interface ResultsScreenProps {
   questions: Question[];
@@ -22,24 +22,46 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
     mainHeadingRef.current?.focus();
   }, []);
 
-  const { score, percentage, incorrectAnswerIndices } = useMemo(() => {
+  const { score, percentage, incorrectAnswerIndices, correctAnswerIndices } = useMemo(() => {
     let currentScore = 0;
     const incorrectIndices: number[] = [];
+    const correctIndices: number[] = [];
     questions.forEach((q, index) => {
       const correctAnswer = String(q.answer).toLowerCase();
       const userAnswer = (userAnswers[index] || '').toLowerCase();
       if (userAnswer === correctAnswer) {
         currentScore++;
+        correctIndices.push(index);
       } else {
         incorrectIndices.push(index);
       }
     });
     const currentPercentage = questions.length > 0 ? (currentScore / questions.length) * 100 : 0;
-    return { score: currentScore, percentage: currentPercentage, incorrectAnswerIndices: incorrectIndices };
+    return { 
+      score: currentScore, 
+      percentage: currentPercentage, 
+      incorrectAnswerIndices: incorrectIndices,
+      correctAnswerIndices: correctIndices,
+    };
   }, [questions, userAnswers]);
+
+  const categoryStats = useMemo(() => {
+    const stats: Record<string, { correct: number; total: number }> = {};
+    questions.forEach((q, index) => {
+        if (!stats[q.category]) {
+            stats[q.category] = { correct: 0, total: 0 };
+        }
+        stats[q.category].total++;
+        if (correctAnswerIndices.includes(index)) {
+            stats[q.category].correct++;
+        }
+    });
+    return stats;
+  }, [questions, correctAnswerIndices]);
 
   useEffect(() => {
     if (questions.length > 0) {
+      // Save overall result for history
       const newResult: QuizResult = {
         score,
         totalQuestions: questions.length,
@@ -47,14 +69,21 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
         totalTime,
         timestamp: Date.now(),
       };
-      
       saveResult(newResult);
       
       const updatedHistory = getHistory();
       const { highScore, count } = calculateHighScore(updatedHistory);
       setHighScoreInfo({ highScore, count, historyLength: updatedHistory.length });
+      
+      // Update incorrect questions list
+      const incorrectQuestionIds = incorrectAnswerIndices.map(i => questions[i].id);
+      addIncorrectQuestionIds(incorrectQuestionIds);
+      
+      // Remove questions that were answered correctly from the incorrect list
+      const correctQuestionIds = correctAnswerIndices.map(i => questions[i].id);
+      removeCorrectlyAnsweredIds(correctQuestionIds);
     }
-  }, [score, percentage, totalTime, questions.length]);
+  }, [score, percentage, totalTime, questions, incorrectAnswerIndices, correctAnswerIndices]);
   
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -81,6 +110,34 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
         <p className="text-lg"><strong>Tỷ lệ đúng:</strong> {percentage.toFixed(1)}%</p>
         <p className="text-lg"><strong>Tổng thời gian:</strong> {formatTime(totalTime)}</p>
         <p className="text-lg mt-2 font-medium text-blue-600"><strong>Đánh giá:</strong> {getAssessment()}</p>
+      </section>
+
+       <section aria-labelledby="category-stats-heading" className="p-6 border-2 rounded-lg bg-blue-50 border-blue-200">
+        <h3 id="category-stats-heading" className="text-xl font-semibold text-gray-700 mb-4">Thống Kê Theo Chủ Đề</h3>
+        <ul className="space-y-2">
+            {/* Fix: Use Object.keys to iterate and ensure stats object is correctly typed. */}
+            {Object.keys(categoryStats).map((category) => {
+                const stats = categoryStats[category];
+                return (
+                    <li key={category} className="text-left">
+                        <p className="font-semibold text-slate-800">{category}</p>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <span>{stats.correct} / {stats.total} đúng</span>
+                          <div className="w-full bg-slate-200 rounded-full h-2.5">
+                              <div 
+                                  className="bg-blue-600 h-2.5 rounded-full" 
+                                  style={{ width: `${(stats.correct / stats.total) * 100}%` }}
+                                  aria-valuenow={(stats.correct / stats.total) * 100}
+                                  aria-valuemin={0}
+                                  aria-valuemax={100}
+                                  aria-label={`Tỷ lệ đúng cho ${category}: ${(stats.correct / stats.total) * 100}%`}
+                              ></div>
+                          </div>
+                        </div>
+                    </li>
+                );
+            })}
+        </ul>
       </section>
 
       <section aria-labelledby="highscore-heading" className="text-center p-6 border-2 rounded-lg bg-yellow-50 border-yellow-200">
@@ -114,7 +171,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
         <div className="space-y-4">
           {questionsToDisplayIndices.map(index => (
             <ResultItem
-              key={index}
+              key={questions[index].id}
               question={questions[index]}
               userAnswer={userAnswers[index]}
               index={index}
