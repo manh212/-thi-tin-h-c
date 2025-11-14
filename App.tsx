@@ -5,6 +5,7 @@ import type { Question, QuizSettings } from './types';
 import SetupScreen from './components/SetupScreen';
 import QuizScreen from './components/QuizScreen';
 import ResultsScreen from './components/ResultsScreen';
+import ApiKeyModal from './components/ApiKeyModal';
 
 type AppState = 'setup' | 'quiz' | 'results';
 
@@ -13,6 +14,16 @@ const App: React.FC = () => {
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [totalTime, setTotalTime] = useState(0);
+
+  // API Key Management
+  const [apiKey, setApiKey] = useState<string | null>(() => localStorage.getItem('gemini-api-key'));
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(!localStorage.getItem('gemini-api-key'));
+
+  const handleSaveApiKey = (newKey: string) => {
+    localStorage.setItem('gemini-api-key', newKey);
+    setApiKey(newKey);
+    setIsApiKeyModalOpen(false);
+  };
 
   const handleStartQuiz = useCallback((settings: QuizSettings) => {
     let filteredQuestions = questionBank;
@@ -48,14 +59,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex items-center justify-center p-4">
-      <main className="container mx-auto max-w-4xl w-full bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+      {isApiKeyModalOpen && <ApiKeyModal onSave={handleSaveApiKey} />}
+      <main className={`container mx-auto max-w-4xl w-full bg-white p-6 sm:p-8 rounded-2xl shadow-lg transition-all ${isApiKeyModalOpen ? 'blur-sm pointer-events-none' : ''}`}>
         <header className="text-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-blue-600">Trình Luyện Thi Tin Học Toàn Diện</h1>
           <p className="text-slate-600 mt-2">Luyện tập từng câu hỏi với phản hồi và giải thích chi tiết.</p>
         </header>
 
         {appState === 'setup' && <SetupScreen onStartQuiz={handleStartQuiz} />}
-        {appState === 'quiz' && <QuizScreen questions={quizQuestions} onFinish={handleFinishQuiz} />}
+        {appState === 'quiz' && <QuizScreen questions={quizQuestions} onFinish={handleFinishQuiz} apiKey={apiKey} />}
         {appState === 'results' && <ResultsScreen questions={quizQuestions} userAnswers={userAnswers} totalTime={totalTime} onRestart={handleRestart} />}
       </main>
     </div>

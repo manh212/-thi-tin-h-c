@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import type { Question } from '../types';
 import Button from './Button';
@@ -6,6 +7,7 @@ import SyllabusModal from './SyllabusModal';
 interface QuizScreenProps {
   questions: Question[];
   onFinish: (userAnswers: Record<number, string>, time: number) => void;
+  apiKey: string | null;
 }
 
 const CorrectIcon = () => (
@@ -20,7 +22,7 @@ const IncorrectIcon = () => (
     </svg>
 );
 
-const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
+const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
@@ -201,15 +203,17 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
           <button 
             onClick={handleOpenSyllabus}
             className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+            disabled={!apiKey}
           >
-            Xem giải thích chi tiết &amp; Ôn tập
+            {apiKey ? 'Xem giải thích chi tiết & Ôn tập' : 'Cần API Key để xem giải thích'}
           </button>
         </div>
       )}
       <SyllabusModal 
         isOpen={isSyllabusOpen} 
         onClose={handleCloseSyllabus} 
-        question={questionForSyllabus} 
+        question={questionForSyllabus}
+        apiKey={apiKey}
       />
     </div>
   );

@@ -9,6 +9,7 @@ interface SyllabusModalProps {
   isOpen: boolean;
   onClose: () => void;
   question: Question | null;
+  apiKey: string | null;
 }
 
 interface Message {
@@ -27,7 +28,7 @@ const LoadingSpinner = () => (
 );
 
 
-const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question }) => {
+const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question, apiKey }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const conversationEndRef = useRef<HTMLDivElement>(null);
@@ -58,7 +59,13 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question
   }, [conversation]);
   
   const initializeChat = useCallback(async () => {
-    if (!question) return;
+    if (!question || !apiKey) {
+        if (!apiKey) {
+            setError('API Key không được cung cấp. Vui lòng cấu hình API Key.');
+            setIsLoading(false);
+        }
+        return;
+    }
 
     setIsLoading(true);
     setConversation([]);
@@ -66,7 +73,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question
     chatRef.current = null;
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+        const ai = new GoogleGenAI({ apiKey: apiKey });
         const chat = ai.chats.create({
             model: 'gemini-2.5-flash',
         });
@@ -92,11 +99,11 @@ Bắt đầu giải thích ngay.`;
 
     } catch (e) {
         console.error(e);
-        setError('Rất tiếc, đã có lỗi xảy ra khi kết nối với Gemini. Vui lòng thử lại.');
+        setError('Rất tiếc, đã có lỗi xảy ra khi kết nối với Gemini. API Key của bạn có thể không hợp lệ. Vui lòng thử lại.');
     } finally {
         setIsLoading(false);
     }
-  }, [question, relevantSyllabus]);
+  }, [question, relevantSyllabus, apiKey]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
