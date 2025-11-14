@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import type { Question } from '../types';
 import Button from './Button';
+import SyllabusModal from './SyllabusModal';
 
 interface QuizScreenProps {
   questions: Question[];
@@ -26,6 +27,8 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackForSR, setFeedbackForSR] = useState('');
   const [time, setTime] = useState(0);
+  const [isSyllabusOpen, setIsSyllabusOpen] = useState(false);
+  const [questionForSyllabus, setQuestionForSyllabus] = useState<Question | null>(null);
   const headingRef = useRef<HTMLLegendElement>(null);
 
   useEffect(() => {
@@ -79,7 +82,16 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
       onFinish(userAnswers, time);
     }
   };
+
+  const handleOpenSyllabus = () => {
+    setQuestionForSyllabus(questions[currentIndex]);
+    setIsSyllabusOpen(true);
+  };
   
+  const handleCloseSyllabus = useCallback(() => {
+    setIsSyllabusOpen(false);
+  }, []);
+
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
     const seconds = (totalSeconds % 60).toString().padStart(2, '0');
@@ -182,12 +194,23 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish }) => {
       )}
 
       {showFeedback && (
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
           <Button onClick={handleNextQuestion}>
             {currentIndex < questions.length - 1 ? 'Câu hỏi tiếp theo' : 'Hoàn thành'}
           </Button>
+          <button 
+            onClick={handleOpenSyllabus}
+            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          >
+            Xem giải thích chi tiết &amp; Ôn tập
+          </button>
         </div>
       )}
+      <SyllabusModal 
+        isOpen={isSyllabusOpen} 
+        onClose={handleCloseSyllabus} 
+        question={questionForSyllabus} 
+      />
     </div>
   );
 };
