@@ -16,10 +16,27 @@ const App: React.FC = () => {
   const [totalTime, setTotalTime] = useState(0);
 
   // API Key Management
-  const [apiKey, setApiKey] = useState<string | null>(() => localStorage.getItem('gemini-api-key'));
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(!localStorage.getItem('gemini-api-key'));
+  const [apiKey, setApiKey] = useState<string | null>(() => {
+    // Ưu tiên key hệ thống từ biến môi trường
+    const systemApiKey = process.env.API_KEY;
+    if (systemApiKey && systemApiKey.trim() !== '') {
+      return systemApiKey;
+    }
+    // Nếu không có, dùng key cá nhân từ localStorage
+    return localStorage.getItem('gemini-api-key');
+  });
+
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(() => {
+    // Chỉ mở modal nếu không có key hệ thống VÀ không có key cá nhân
+    const systemApiKey = process.env.API_KEY;
+    if (systemApiKey && systemApiKey.trim() !== '') {
+      return false; 
+    }
+    return !localStorage.getItem('gemini-api-key');
+  });
 
   const handleSaveApiKey = (newKey: string) => {
+    // Hàm này chỉ được gọi khi không có key hệ thống, để lưu key cá nhân
     localStorage.setItem('gemini-api-key', newKey);
     setApiKey(newKey);
     setIsApiKeyModalOpen(false);
