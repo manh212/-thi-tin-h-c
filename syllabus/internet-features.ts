@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "internet-features",
   title: "Internet: Tìm Kiếm, Bookmark và Gmail",
   content: `
 2. Tìm kiếm trên Internet

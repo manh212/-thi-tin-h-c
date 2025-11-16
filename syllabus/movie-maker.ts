@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "movie-maker",
   title: "Windows Movie Maker: Tạo và Chỉnh Sửa Video",
   content: `
 1.1. Tạo video từ file âm thanh và file ảnh

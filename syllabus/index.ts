@@ -22,7 +22,8 @@ import { item as wordFeatures } from './word-features';
 import { item as wordPdf } from './word-pdf';
 import { item as wordTables } from './word-tables';
 
-interface SyllabusItem {
+export interface SyllabusItem {
+  id: string;
   title: string;
   content: string;
 }

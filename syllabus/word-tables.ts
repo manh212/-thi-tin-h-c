@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "word-tables",
   title: "Word: Bảng Biểu",
   content: `
 1.5. Bảng biểu (Di chuyển)

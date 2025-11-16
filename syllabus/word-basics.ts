@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "word-basics",
   title: "Word: Soạn Thảo và Định Dạng Cơ Bản",
   content: `
 1.2. Soạn thảo văn bản

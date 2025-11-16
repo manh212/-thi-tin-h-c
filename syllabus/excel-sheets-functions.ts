@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "excel-sheets-functions",
   title: "Excel: Quản Lý Sheet và Các Hàm Cơ Bản",
   content: `
 11. Thao tác với các bảng tính trong workbook

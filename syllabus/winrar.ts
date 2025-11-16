@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "winrar",
   title: "WinRAR: Nén và Giải Nén",
   content: `
 1. Lý thuyết

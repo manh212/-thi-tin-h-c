@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "word-pdf",
   title: "Word: Tích Hợp PDF",
   content: `
 10. Lưu và mở file pdf với Microsoft Word 2016

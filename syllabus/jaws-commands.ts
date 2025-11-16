@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "jaws-commands",
   title: "JAWS: Các Lệnh Thường Dùng",
   content: `
 1. Lý thuyết

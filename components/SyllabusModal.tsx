@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
+// FIX: Corrected import path to point to the correct module file.
 import { allSyllabusContent } from '../syllabus/index';
 import type { Question } from '../types';
 import Button from './Button';
@@ -10,6 +11,7 @@ interface SyllabusModalProps {
   onClose: () => void;
   question: Question | null;
   apiKey: string | null;
+  userAnswer: string | null;
 }
 
 interface Message {
@@ -28,7 +30,7 @@ const LoadingSpinner = () => (
 );
 
 
-const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question, apiKey }) => {
+const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question, apiKey, userAnswer }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const conversationEndRef = useRef<HTMLDivElement>(null);
@@ -41,13 +43,8 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question
   const [error, setError] = useState<string | null>(null);
 
   const relevantSyllabus = useMemo(() => {
-    if (!question) return null;
-    
-    const normalizedCategory = question.category.toLowerCase();
-    return allSyllabusContent.find(item => 
-      item.title.toLowerCase().includes(normalizedCategory) || 
-      normalizedCategory.includes(item.title.toLowerCase())
-    ) || null;
+    if (!question?.syllabusRef) return null;
+    return allSyllabusContent.find(item => item.id === question.syllabusRef) || null;
   }, [question]);
 
   const scrollToBottom = () => {
@@ -59,11 +56,11 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question
   }, [conversation]);
   
   const initializeChat = useCallback(async () => {
-    if (!question || !apiKey) {
+    if (!question || !apiKey || userAnswer === null) {
         if (!apiKey) {
             setError('API Key không được cung cấp. Vui lòng cấu hình API Key.');
-            setIsLoading(false);
         }
+        setIsLoading(false);
         return;
     }
 
@@ -80,18 +77,28 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({ isOpen, onClose, question
         chatRef.current = chat;
         
         const correctAnswerText = String(question.answer) === 'true' ? 'Đúng' : String(question.answer) === 'false' ? 'Sai' : question.answer;
-
-        const initialPrompt = `Hãy là một gia sư tin học. Dựa vào **Tài liệu tham khảo** sau đây để giải thích ngắn gọn, súc tích và dễ hiểu tại sao đáp án cho câu hỏi này lại đúng. Tuyệt đối chỉ dùng tài liệu này làm cơ sở, không bịa thêm thông tin.
-
-**Tài liệu tham khảo:**
+        const userAnswerText = String(userAnswer) === 'true' ? 'Đúng' : String(userAnswer) === 'false' ? 'Sai' : userAnswer;
+        
+        const initialPrompt = `Bạn là một Gia sư Tin học thân thiện và chuyên nghiệp.
+Nhiệm vụ của bạn là giải thích câu trả lời cho một câu hỏi tin học.
+Quy tắc:
+1. Chỉ dựa vào Tài liệu tham khảo: Dùng nội dung trong phần **Tài liệu tham khảo** làm cơ sở duy nhất để giải thích.
+2. Tuyệt đối không bịa thêm kiến thức bên ngoài hoặc thông tin không có trong tài liệu đã cung cấp.
+3. Giải thích súc tích và dễ hiểu (như đang nói chuyện với học viên).
+Thông tin đầu vào:
+ 
+Tài liệu tham khảo:
 ---
 ${relevantSyllabus ? relevantSyllabus.content : "Không có tài liệu tham khảo."}
 ---
-
-**Câu hỏi:** "${question.question}"
-**Đáp án đúng:** "${correctAnswerText}"
-
-Bắt đầu giải thích ngay.`;
+Câu hỏi: "${question.question}"
+Đáp án của học viên: "${userAnswerText}"
+Đáp án đúng: "${correctAnswerText}"
+Yêu cầu:
+- Bắt đầu giải thích ngay lập tức.
+- Nếu đáp án của học viên đúng, hãy xác nhận và giải thích ngắn gọn tại sao nó đúng.
+- Nếu đáp án của học viên sai, hãy nhẹ nhàng chỉ ra điểm sai và giải thích tại sao đáp án đúng lại chính xác.
+- Luôn sử dụng giọng văn của một gia sư, không cần giới thiệu.`;
         
         const response = await chat.sendMessage({ message: initialPrompt });
 
@@ -103,7 +110,7 @@ Bắt đầu giải thích ngay.`;
     } finally {
         setIsLoading(false);
     }
-  }, [question, relevantSyllabus, apiKey]);
+  }, [question, relevantSyllabus, apiKey, userAnswer]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -181,7 +188,7 @@ Bắt đầu giải thích ngay.`;
           </button>
         </header>
         <div className="p-6 overflow-y-auto space-y-8">
-            {relevantSyllabus && (
+            {relevantSyllabus ? (
               <section aria-labelledby="original-syllabus-section">
                 <h3 id="original-syllabus-section" className="text-xl font-semibold text-blue-700 mb-3 border-b-2 border-blue-200 pb-2">
                   Nội dung ôn tập liên quan: {relevantSyllabus.title}
@@ -189,6 +196,13 @@ Bắt đầu giải thích ngay.`;
                 <pre className="whitespace-pre-wrap font-sans text-base text-gray-700 leading-relaxed bg-slate-50 p-4 rounded-md max-h-48 overflow-y-auto">
                   {relevantSyllabus.content.trim()}
                 </pre>
+              </section>
+            ) : (
+              <section aria-labelledby="original-syllabus-section">
+                  <h3 id="original-syllabus-section" className="text-xl font-semibold text-blue-700 mb-3 border-b-2 border-blue-200 pb-2">
+                      Nội dung ôn tập liên quan
+                  </h3>
+                  <p className="text-gray-600 bg-slate-50 p-4 rounded-md">Không tìm thấy nội dung ôn tập cụ thể cho câu hỏi này.</p>
               </section>
             )}
 

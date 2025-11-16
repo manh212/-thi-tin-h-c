@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "excel-data-tools",
   title: "Excel: Công Cụ Dữ Liệu",
   content: `
 3. Nhập dãy số tuân theo qui luật

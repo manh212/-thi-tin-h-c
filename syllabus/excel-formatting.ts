@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "excel-formatting",
   title: "Excel: Định Dạng",
   content: `
 10. Tạo đường viền

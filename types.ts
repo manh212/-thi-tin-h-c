@@ -6,6 +6,7 @@ export interface Question {
   options?: string[];
   answer: string | boolean;
   explanation?: string;
+  syllabusRef?: string;
 }
 
 export interface QuizSettings {

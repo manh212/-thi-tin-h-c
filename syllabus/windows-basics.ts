@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "windows-basics",
   title: "Windows: Thao Tác Cơ Bản",
   content: `
 1. Các câu lệnh thường dùng

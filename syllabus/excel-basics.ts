@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "excel-basics",
   title: "Excel: Kiến Thức Cơ Bản",
   content: `
 1.1. Các lệnh di chuyển trong bảng tính
@@ -24,10 +27,6 @@ export const item = {
 - Ctrl+shift+page down: Chọn bảng tính hiện tại và chuyển đến bảng tính tiếp theo 
 - Ctrl+shift+page up: Chọn bảng tính hiện thời và trước đó.
 - Ctrl+a: Chọn toàn bộ bảng tính.
-
-1.3. Các lệnh sao chép trong bảng tính
-- Nhấn Ctrl+d: Nhập nội dung giống nhau vào cùng 1 cột.
-- Nhấn Ctrl+r: Nhập nội dung giống nhau vào cùng 1 hàng.
 
 2. Nhập dữ liệu thông thường
 * Cách 1: 

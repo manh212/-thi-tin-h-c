@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "internet-navigation",
   title: "Internet: Điều Hướng",
   content: `
 1.1. Các lệnh di chuyển trong Internet

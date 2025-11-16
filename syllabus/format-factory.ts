@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "format-factory",
   title: "Format Factory: Chuyển Đổi File Audio và Video",
   content: `
 - Bước 1: Chọn một thư mục hoặc một file audio/video cần chuyển đổi.

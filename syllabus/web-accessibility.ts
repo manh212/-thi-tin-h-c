@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "web-accessibility",
   title: "Kiểm Tra Tính Tiếp Cận Web",
   content: `
 I. Lý thuyết

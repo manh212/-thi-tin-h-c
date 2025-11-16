@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "balabolka",
   title: "Balabolka: Chuyển Đổi Văn Bản thành Âm Thanh",
   content: `
 1.1. Các câu lệnh thường dùng

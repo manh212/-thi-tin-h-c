@@ -214,6 +214,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
         onClose={handleCloseSyllabus} 
         question={questionForSyllabus}
         apiKey={apiKey}
+        userAnswer={selectedAnswer}
       />
     </div>
   );

@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "nvda-commands",
   title: "NVDA: Các Lệnh Thường Dùng",
   content: `
 1. Các lệnh thường dùng

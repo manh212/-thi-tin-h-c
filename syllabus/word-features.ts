@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "word-features",
   title: "Word: Các Tính Năng",
   content: `
 2. Lưu văn bản

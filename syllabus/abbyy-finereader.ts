@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "abbyy-finereader",
   title: "ABBYY FineReader: Chuyển Đổi File PDF và Ảnh",
   content: `
 - Bước 1: Chọn file PDF cần chuyển đổi.

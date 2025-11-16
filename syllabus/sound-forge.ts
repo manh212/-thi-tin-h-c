@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "sound-forge",
   title: "Sound Forge: Xử Lý Âm Thanh",
   content: `
 1.1. Các lệnh thường dùng

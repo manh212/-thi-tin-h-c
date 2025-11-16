@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "unikey",
   title: "Unikey: Các Phím Tắt",
   content: `
 1.1. Phím tắt trong Unikey

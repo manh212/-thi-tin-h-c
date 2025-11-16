@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "phone-usage",
   title: "Điện Thoại Cảm Ứng: Chia Sẻ Dữ Liệu",
   content: `
 1. Làm việc với các biểu tượng ứng dụng trên màn hình chính (màn hình chờ)

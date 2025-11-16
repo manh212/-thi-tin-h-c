@@ -1,4 +1,7 @@
-export const item = {
+import type { SyllabusItem } from ".";
+
+export const item: SyllabusItem = {
+  id: "windows-advanced",
   title: "Windows: Tính Năng Nâng Cao",
   content: `
 5. Hiển thị đuôi file
