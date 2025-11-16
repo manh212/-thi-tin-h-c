@@ -85,7 +85,7 @@ const App: React.FC = () => {
 
         {appState === 'setup' && <SetupScreen onStartQuiz={handleStartQuiz} />}
         {appState === 'quiz' && <QuizScreen questions={quizQuestions} onFinish={handleFinishQuiz} apiKey={apiKey} />}
-        {appState === 'results' && <ResultsScreen questions={quizQuestions} userAnswers={userAnswers} totalTime={totalTime} onRestart={handleRestart} />}
+        {appState === 'results' && <ResultsScreen questions={quizQuestions} userAnswers={userAnswers} totalTime={totalTime} onRestart={handleRestart} apiKey={apiKey} />}
       </main>
     </div>
   );
