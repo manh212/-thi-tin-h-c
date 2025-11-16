@@ -167,33 +167,34 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
         <legend ref={headingRef} tabIndex={-1} className="font-semibold text-xl text-slate-800 mb-4 focus:outline-none">
           Câu hỏi {currentIndex + 1} / {questions.length}: {currentQuestion.question}
         </legend>
+
+        {showFeedback && (
+            <div className={`mb-6 p-4 border rounded-lg ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`} role="alert">
+              <div className="flex items-start space-x-3">
+                {isCorrect ? <CorrectIcon /> : <IncorrectIcon />}
+                <div>
+                  <h3 className={`text-lg font-semibold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                    {isCorrect ? 'Chính xác!' : 'Không chính xác'}
+                  </h3>
+                   {!isCorrect && (
+                    <p className="text-sm text-slate-700 mt-2">
+                      <strong>Đáp án đúng:</strong> <span className="font-semibold">{String(currentQuestion.answer) === 'true' ? 'Đúng' : String(currentQuestion.answer) === 'false' ? 'Sai' : currentQuestion.answer}</span>
+                    </p>
+                   )}
+                  {currentQuestion.explanation && (
+                     <p className="text-sm text-slate-700 mt-2">
+                       <strong>Giải thích:</strong> {currentQuestion.explanation}
+                     </p>
+                  )}
+                </div>
+              </div>
+            </div>
+        )}
+
         <div className="space-y-3">
           {renderOptions()}
         </div>
       </fieldset>
-
-      {showFeedback && (
-        <div className={`mt-6 p-4 border rounded-lg ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`} role="alert">
-          <div className="flex items-start space-x-3">
-            {isCorrect ? <CorrectIcon /> : <IncorrectIcon />}
-            <div>
-              <h3 className={`text-lg font-semibold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                {isCorrect ? 'Chính xác!' : 'Không chính xác'}
-              </h3>
-              {currentQuestion.explanation && (
-                 <p className="text-sm text-slate-700 mt-2">
-                   <strong>Giải thích:</strong> {currentQuestion.explanation}
-                 </p>
-              )}
-               {!isCorrect && (
-                <p className="text-sm text-slate-700 mt-2">
-                  <strong>Đáp án đúng:</strong> <span className="font-semibold">{String(currentQuestion.answer) === 'true' ? 'Đúng' : String(currentQuestion.answer) === 'false' ? 'Sai' : currentQuestion.answer}</span>
-                </p>
-               )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {showFeedback && (
         <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
