@@ -3,6 +3,8 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import type { Question } from '../types';
 import Button from './Button';
 import SyllabusModal from './SyllabusModal';
+import { playAudioFromBase64 } from '../utils/audio';
+import { correctSoundBase64, incorrectSoundBase64 } from '../assets/sounds';
 
 interface QuizScreenProps {
   questions: Question[];
@@ -27,11 +29,11 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackForSR, setFeedbackForSR] = useState('');
   const [time, setTime] = useState(0);
   const [isSyllabusOpen, setIsSyllabusOpen] = useState(false);
   const [questionForSyllabus, setQuestionForSyllabus] = useState<Question | null>(null);
-  const headingRef = useRef<HTMLLegendElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const alertRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -61,25 +63,40 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
 
     const currentQuestion = questions[currentIndex];
     const isCorrect = answer.toLowerCase() === String(currentQuestion.answer).toLowerCase();
-    
-    let feedback = isCorrect ? 'Chính xác!' : 'Không chính xác.';
-    const correctAnswerText = String(currentQuestion.answer) === 'true' ? 'Đúng' : String(currentQuestion.answer) === 'false' ? 'Sai' : currentQuestion.answer;
 
-    if (!isCorrect) {
-      feedback += ` Đáp án đúng là: ${correctAnswerText}.`;
+    // Construct feedback text for screen reader
+    let feedback = '';
+    const correctAnswerText = String(currentQuestion.answer) === 'true' ? 'Đúng' : String(currentQuestion.answer) === 'false' ? 'Sai' : currentQuestion.answer;
+    
+    if (isCorrect) {
+      feedback = 'Chính xác!';
+      if (currentQuestion.explanation) {
+        feedback += ` Giải thích: ${currentQuestion.explanation}`;
+      }
+      playAudioFromBase64(correctSoundBase64);
+    } else {
+      feedback = `Không chính xác. Đáp án đúng là: ${correctAnswerText}.`;
+      if (currentQuestion.explanation) {
+        feedback += ` Giải thích: ${currentQuestion.explanation}`;
+      }
+      playAudioFromBase64(incorrectSoundBase64);
     }
-    if (currentQuestion.explanation) {
-      feedback += ` Giải thích: ${currentQuestion.explanation}`;
+    
+    if (alertRef.current) {
+      alertRef.current.textContent = feedback;
     }
-    setFeedbackForSR(feedback);
   };
 
   const handleNextQuestion = () => {
+    // Clear the alert content immediately before navigating
+    if (alertRef.current) {
+      alertRef.current.textContent = '';
+    }
+
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswer(null);
       setShowFeedback(false);
-      setFeedbackForSR('');
     } else {
       onFinish(userAnswers, time);
     }
@@ -151,7 +168,6 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
 
   return (
     <div>
-      <div className="sr-only" aria-live="assertive" aria-atomic="true">{feedbackForSR}</div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-700">Luyện tập</h2>
         <div 
@@ -163,13 +179,16 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
         </div>
       </div>
       
-      <fieldset className="p-5 border border-slate-200 rounded-lg bg-white shadow-sm">
-        <legend ref={headingRef} tabIndex={-1} className="font-semibold text-xl text-slate-800 mb-4 focus:outline-none">
+      {/* Visually hidden alert for screen reader announcements. This container is always in the DOM for reliability. */}
+      <div ref={alertRef} role="alert" className="sr-only"></div>
+
+      <div role="group" aria-labelledby="question-heading" className="p-5 border border-slate-200 rounded-lg bg-white shadow-sm">
+        <h3 id="question-heading" ref={headingRef} tabIndex={-1} className="font-semibold text-xl text-slate-800 mb-4 focus:outline-none">
           Câu hỏi {currentIndex + 1} / {questions.length}: {currentQuestion.question}
-        </legend>
+        </h3>
 
         {showFeedback && (
-            <div className={`mb-6 p-4 border rounded-lg ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`} role="alert">
+            <div className={`mb-6 p-4 border rounded-lg ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               <div className="flex items-start space-x-3">
                 {isCorrect ? <CorrectIcon /> : <IncorrectIcon />}
                 <div>
@@ -194,13 +213,13 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
         <div className="space-y-3">
           {renderOptions()}
         </div>
-      </fieldset>
+      </div>
 
-      {showFeedback && (
-        <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Button onClick={handleNextQuestion}>
-            {currentIndex < questions.length - 1 ? 'Câu hỏi tiếp theo' : 'Hoàn thành'}
-          </Button>
+      <div className="text-center mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+        <Button onClick={handleNextQuestion} disabled={!showFeedback}>
+          {currentIndex < questions.length - 1 ? 'Câu hỏi tiếp theo' : 'Hoàn thành'}
+        </Button>
+        {showFeedback && (
           <button 
             onClick={handleOpenSyllabus}
             className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
@@ -208,8 +227,9 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ questions, onFinish, apiKey }) 
           >
             {apiKey ? 'Xem giải thích chi tiết & Ôn tập' : 'Cần API Key để xem giải thích'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
+
       <SyllabusModal 
         isOpen={isSyllabusOpen} 
         onClose={handleCloseSyllabus} 
