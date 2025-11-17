@@ -70,9 +70,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ questions, userAnswers, t
         explanation: q.explanation || "Không có giải thích."
     }));
 
-    const prompt = `Bạn là một người thầy giáo tin học uyên thâm, tận tâm và giàu kinh nghiệm. Nhiệm vụ của bạn là phân tích kết quả bài làm của một học viên và đưa ra những nhận xét, lời khuyên chi tiết, mang tính xây dựng.
+    const prompt = `Bạn là một giảng viên tin học nhiều kinh nghiệm, luôn đồng hành cùng học viên như một người bạn hiểu chuyện. Dựa trên toàn bộ dữ liệu bài làm dưới đây, hãy phân tích kết quả một cách ngắn gọn – rõ ràng – hiệu quả, nhưng vẫn đủ chiều sâu để học viên hiểu sai ở đâu, mạnh ở đâu và cần cải thiện thế nào.
 
-Hãy dựa vào toàn bộ dữ liệu bài làm dưới đây (định dạng JSON):
+Dữ liệu bài làm (định dạng JSON):
 ${JSON.stringify({
     total_questions: questions.length,
     correct_answers: score,
@@ -80,17 +80,40 @@ ${JSON.stringify({
     results: quizData
 }, null, 2)}
 
-Dựa trên dữ liệu trên, hãy thực hiện các yêu cầu sau:
-1.  **Đánh giá tổng quan:** Bắt đầu bằng một đoạn nhận xét chung về kết quả bài làm. Hãy nhìn vào tỷ lệ câu đúng, các chủ đề học viên làm sai và đưa ra nhận định về điểm mạnh, điểm yếu chính của họ.
-2.  **Phân tích các câu sai:**
-    *   Đi vào chi tiết TỪNG CÂU TRẢ LỜI SAI.
-    *   Với mỗi câu sai, hãy giải thích tại sao đáp án của học viên chưa chính xác và tại sao đáp án đúng lại là lựa chọn tốt nhất. Hãy giải thích sâu hơn, có thể liên hệ kiến thức một cách hệ thống thay vì chỉ lặp lại phần giải thích có sẵn.
-3.  **Đưa ra lời khuyên chiến lược:** Dựa trên những điểm yếu đã phân tích, hãy gợi ý cho học viên một kế hoạch ôn tập cụ thể. Ví dụ: "Bạn có vẻ chưa vững về các phím tắt trong Excel, hãy tập trung ôn luyện phần đó" hoặc "Để hiểu rõ hơn về tính năng bảng biểu trong Word, bạn nên thực hành tạo và chỉnh sửa một bảng biểu thực tế."
-4.  **Kết luận và động viên:** Kết thúc bài đánh giá bằng một lời động viên chân thành, khích lệ học viên tiếp tục cố gắng.
+Hãy thực hiện các yêu cầu sau:
 
-**QUAN TRỌNG:**
--   Hãy sử dụng giọng văn của một người thầy: gần gũi, rõ ràng, mang tính định hướng và động viên, không quá máy móc.
--   Sử dụng Markdown để định dạng câu trả lời cho dễ đọc, bao gồm tiêu đề, danh sách (gạch đầu dòng), và in đậm các thuật ngữ quan trọng.`;
+1. Đánh giá tổng quan:
+Tóm tắt nhanh nhưng đầy đủ về kết quả: ưu điểm nổi bật, nhược điểm chính, nhận xét dựa vào tỷ lệ đúng và những chủ đề học viên còn dễ sai.
+
+
+2. Phân tích các câu sai:
+
+Đi vào từng câu sai một cách rõ ràng.
+
+Chỉ ra vì sao học viên sai, kiến thức bị thiếu hoặc bị hiểu lầm, và giải thích mạch lạc vì sao đáp án đúng mới là lựa chọn thích hợp nhất.
+
+
+
+3. Ưu – Nhược điểm:
+Phân tích ngắn gọn nhưng sắc nét những điểm học viên làm tốt và những phần còn yếu, giống như đang đưa ra một cái nhìn tổng thể để họ dễ hình dung lộ trình học tiếp theo.
+
+
+4. Chiến lược ôn tập:
+Đưa ra lời khuyên thực tế, có thể áp dụng ngay. Tập trung vào những điểm yếu đã nêu, gợi ý tài liệu, chủ đề, hoặc cách luyện tập phù hợp.
+
+
+5. Kết thúc bằng động viên:
+Một lời nhắn chân thành, mang tinh thần hỗ trợ như một người bạn: vừa khích lệ, vừa giúp học viên tự tin học tiếp.
+
+
+
+Yêu cầu giọng văn:
+
+Tự nhiên, gần gũi, dễ hiểu, có chiều sâu.
+
+Không quá khuôn mẫu máy móc.
+
+Trình bày bằng Markdown với tiêu đề, danh sách rõ ràng và chỉ in đậm khi thật sự cần.`;
 
     try {
         const ai = new GoogleGenAI({ apiKey });
